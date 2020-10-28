@@ -2,9 +2,11 @@
 #include <string>   // used for c strings
 #include <cstring>  // used for strcmp
 #include <fstream>  // used for file read and write
+#include <sstream>  // used for search and replace
 
 void loadDictionary(bool, std::string);
 void prefixSearch(std::string, bool, std::string, int);
+void searchReplace(std::string, std::string, bool, std::string);
 
 int main(int argc, char* argv[])
 {
@@ -39,24 +41,24 @@ int main(int argc, char* argv[])
             pparamRun = true;
             i++;
         }
-        if (!strcmp(argv[i], "-n")) // '-n' command
+        if (strcmp(argv[i], "-n") == 0) // '-n' command
         {
             nparam = std::stoi(argv[i+1]);
             i++;
         }
-        if (!strcmp(argv[i], "-s")) // '-s' command
+        if (strcmp(argv[i], "-s") == 0) // '-s' command
         {
             sparam = argv[i+1];
             sparamRun = true;
             i++;
         }
-        if (!strcmp(argv[i], "-r")) // '-r' command
+        if (strcmp(argv[i], "-r") == 0) // '-r' command
         {
             rparam = argv[i+1];
             rparamRun = true;
             i++;
         }
-        if (!strcmp(argv[i], "-v")) // '-v' command
+        if (strcmp(argv[i], "-v") == 0) // '-v' command
         {
             vparam = argv[i+1];
             vparamRun = true;
@@ -70,6 +72,11 @@ int main(int argc, char* argv[])
     if (pparamRun)
     {
         prefixSearch(pparam, fileProvided, dparam, nparam);
+    }
+
+    if(sparamRun && rparamRun)
+    {
+        searchReplace(sparam, rparam, fileProvided, dparam);
     }
     
     
@@ -109,7 +116,6 @@ void loadDictionary(bool fileProvided, std::string dparam)
     std::cout << dparam  << " has " << numLines << " words." << std::endl;
     std::cout << std::endl;
     myFile.close();
-
 }
 
 // this function will search for a word in the dictionary that begins with the prefix given
@@ -165,5 +171,60 @@ void prefixSearch(std::string pparam, bool fileProvided, std::string dparam, int
         }
     }
     myFile.close();
+}
 
+// this function runs a search and replace across the entire file
+void searchReplace(std::string sparam, std::string rparam, bool fileProvided, std::string dparam)
+{
+    int searchLength = sparam.length();
+    int pointerPos = 0;
+    // overwrites file name if user did not enter dparam
+    if (!fileProvided)
+    {
+        dparam = "dictionary.txt";
+    }
+
+    // open the file, resort to default file if file not found
+    std::ifstream myFile;
+    myFile.open(dparam);
+    if (!myFile.is_open())
+    {
+        dparam = "dictionary.txt";
+        myFile.open(dparam);
+    }
+
+    int numLines = 0;
+    std::string line;
+    std::string temp;
+
+    // counts the number of lines in the dictionary file
+    while (!myFile.eof())
+    {
+        getline(myFile, line, ':');
+        std::stringstream stream(line);
+        while (stream >> temp)
+        {
+            // this was adopted from https://stackoverflow.com/questions/2340281/check-if-a-string-contains-a-string-in-c
+            // checks if a string contains a substring
+            if(temp.find(sparam) != std::string::npos)
+            {
+                // searches through the length of the word that was found
+                for (int i = 0; i < temp.length(); i++)
+                {
+                    pointerPos += i;
+                    // if the sparam substring exists replace it with rparam
+                    if (temp.substr(i, searchLength) == sparam)
+                    {
+                        std::cout << temp.substr(i, searchLength) << " POS: " << pointerPos;
+                    }
+                }
+            }
+            else
+            {
+                pointerPos += temp.length();
+            }
+        }
+    }
+    
+    myFile.close();
 }
