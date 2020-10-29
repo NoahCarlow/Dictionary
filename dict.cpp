@@ -7,11 +7,12 @@
 void loadDictionary(bool, std::string);
 void prefixSearch(std::string, bool, std::string, int);
 void searchReplace(std::string, std::string, bool, std::string);
+void spawnEditor(std::string, std::string);
 
 int main(int argc, char* argv[])
 {
     // hold the params for each command entered by user
-    std::string dparam = "";
+    std::string dparam = "dictionary.txt";
     std::string pparam = "";
     int nparam = -1;
     std::string sparam = "";
@@ -60,9 +61,11 @@ int main(int argc, char* argv[])
         }
         if (strcmp(argv[i], "-v") == 0) // '-v' command
         {
-            vparam = argv[i+1];
+            for (int y = i + 1; y < argc; y++)
+            {
+                vparam += argv[y];
+            }
             vparamRun = true;
-            i++;
         }
     }
 
@@ -74,13 +77,16 @@ int main(int argc, char* argv[])
         prefixSearch(pparam, fileProvided, dparam, nparam);
     }
 
-    if(sparamRun && rparamRun)
+    if (sparamRun && rparamRun)
     {
         searchReplace(sparam, rparam, fileProvided, dparam);
     }
-    
-    
-    
+
+    if (vparamRun)
+    {
+        std::cout << vparam << std::endl;
+        spawnEditor(vparam, dparam);
+    }
 
     return 0;
 }
@@ -110,7 +116,10 @@ void loadDictionary(bool fileProvided, std::string dparam)
     while (!myFile.eof())
     {
         getline(myFile, line);
-        numLines++;
+        if (line != "") // only count non whitespace lines
+        {
+            numLines++;
+        }
     }
     std::cout << std::endl;
     std::cout << dparam  << " has " << numLines << " words." << std::endl;
@@ -225,6 +234,12 @@ void searchReplace(std::string sparam, std::string rparam, bool fileProvided, st
             }
         }
     }
-    
     myFile.close();
+}
+
+// this function spawns an editor and allows the user to make custom changes
+void spawnEditor(std::string vparam, std::string dparam)
+{
+    std::string temp = vparam + " " + dparam;
+    system(temp.c_str());
 }
