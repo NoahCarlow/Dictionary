@@ -1,8 +1,7 @@
-#include <iostream> // used for input and output
-#include <string>   // used for c strings
-#include <cstring>  // used for strcmp
-#include <fstream>  // used for file read and write
-#include <sstream>  // used for search and replace
+#include <iostream>     // used for input and output
+#include <string>       // used for c strings
+#include <cstring>      // used for strcmp
+#include <fstream>      // used for file read and write
 
 void loadDictionary(bool, std::string);
 void prefixSearch(std::string, bool, std::string, int);
@@ -186,7 +185,7 @@ void prefixSearch(std::string pparam, bool fileProvided, std::string dparam, int
 void searchReplace(std::string sparam, std::string rparam, bool fileProvided, std::string dparam)
 {
     int searchLength = sparam.length();
-    int pointerPos = 0;
+    int replaceLength = rparam.length();
     // overwrites file name if user did not enter dparam
     if (!fileProvided)
     {
@@ -194,47 +193,40 @@ void searchReplace(std::string sparam, std::string rparam, bool fileProvided, st
     }
 
     // open the file, resort to default file if file not found
-    std::ifstream myFile;
-    myFile.open(dparam);
-    if (!myFile.is_open())
+    std::fstream myReadFile;
+    myReadFile.open(dparam);
+    if (!myReadFile.is_open())
     {
         dparam = "dictionary.txt";
-        myFile.open(dparam);
+        myReadFile.open(dparam);
     }
 
-    int numLines = 0;
     std::string line;
-    std::string temp;
+    std::string file;
 
     // counts the number of lines in the dictionary file
-    while (!myFile.eof())
+    while (!myReadFile.eof())
     {
-        getline(myFile, line, ':');
-        std::stringstream stream(line);
-        while (stream >> temp)
+        std::string tempString = "";
+        getline(myReadFile, line);
+        
+        // adopted from https://stackoverflow.com/questions/2896600/how-to-replace-all-occurrences-of-a-character-in-string
+        // this handles the search and replace of the two arguments sparam and rparam
+        size_t start_pos = 0;
+        while((start_pos = line.find(sparam, start_pos)) != std::string::npos) 
         {
-            // this was adopted from https://stackoverflow.com/questions/2340281/check-if-a-string-contains-a-string-in-c
-            // checks if a string contains a substring
-            if(temp.find(sparam) != std::string::npos)
-            {
-                // searches through the length of the word that was found
-                for (int i = 0; i < temp.length(); i++)
-                {
-                    pointerPos += i;
-                    // if the sparam substring exists replace it with rparam
-                    if (temp.substr(i, searchLength) == sparam)
-                    {
-                        std::cout << temp.substr(i, searchLength) << " POS: " << pointerPos;
-                    }
-                }
-            }
-            else
-            {
-                pointerPos += temp.length();
-            }
+            line.replace(start_pos, sparam.length(), rparam);
+            start_pos += rparam.length(); // Handles case where 'to' is a substring of 'from'
         }
+        file.append(line);
+        file.append("\n");
     }
-    myFile.close();
+    myReadFile.close();
+
+    std::ofstream myWriteFile;
+    myWriteFile.open(dparam);
+    myWriteFile << file;
+    myWriteFile.close();
 }
 
 // this function spawns an editor and allows the user to make custom changes
