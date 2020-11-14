@@ -1,5 +1,5 @@
 # Dictionary
-C++ Dictionary Application that allows users to perform multiple functions to a text file.
+###C++ Dictionary Application that allows users to perform multiple functions to a text file.
 
 loadDictionary - this function gets the number of lines in a given dictionary from the user
 <br></br>
